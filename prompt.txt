@@ -1,0 +1,49 @@
+Deploy en Coolify — paso a paso
+1. Subir a un repo Git (GitHub, Gitea, lo que uses con Coolify):
+
+mkdir trading-bot && cd trading-bot
+tar xzf trading-bot.tar.gz
+git init && git add . && git commit -m "trading bot v1"
+git remote add origin <tu-repo>
+git push -u origin main
+
+
+2. En Coolify:
+	∙	New Resource → Application → tu servidor
+	∙	Source: el repo Git
+	∙	Build Pack: Dockerfile
+	∙	Port expuesto: 3000
+
+
+3. Variables de entorno (en Coolify > Environment Variables):
+BYBIT_API_KEY = 
+BYBIT_API_SECRET = 
+BYBIT_TESTNET = true
+PORT = 3000
+
+
+4. Persistencia — En Storages agregar mount: /app/data
+
+
+5. Deploy. El bot arranca, chequea señales cada 60 segundos, y expone:
+	∙	https://tu-dominio/health → estado, balance, posiciones, drawdown
+	∙	https://tu-dominio/trades → historial completo
+
+
+Estructura del proyecto:
+trading-bot/
+├── bot.py              ← Lógica completa (indicadores + ejecución + API health)
+├── Dockerfile
+├── docker-compose.yml  ← Para test local si querés
+├── requirements.txt
+├── .gitignore
+└── README.md           ← Instrucciones detalladas
+
+Ruta para ponerlo en marcha
+	1.	Crear API Key en Bybit (solo permisos de Contract Trade, restringir a IP del VPS)
+	2.	Deploy en Coolify con BYBIT_TESTNET=true
+	3.	Observar /health y /trades durante 2-4 semanas
+	4.	Si los resultados son coherentes → cambiar BYBIT_TESTNET a false, redeploy
+	5.	Depositar $100-300 USDT en Bybit vía P2P​​​​​​​​​​​​​​​​
+
+    
