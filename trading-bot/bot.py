@@ -1001,23 +1001,23 @@ def render_dashboard():
     for k, v in asdict(cfg).items():
         config_items += f'<div class="config-item"><span class="config-key">{k}</span><span class="config-val">{v}</span></div>'
 
-    return DASHBOARD_HTML.format(
-        status_class=status_class,
-        status_text=status_text,
-        net_class=net_class,
-        net_text=net_text,
-        balance=f"{balance:.2f}",
-        equity_peak=f"{equity_peak:.2f}",
-        drawdown_pct=f"{dd_pct:.1f}",
-        dd_class=dd_class,
-        dd_color=dd_color,
-        drawdown_bar=f"{dd_bar:.0f}",
-        total_trades=len(trades),
-        positions_table=positions_table,
-        indicators_table=indicators_table,
-        trades_table=trades_table,
-        config_items=config_items,
-        last_check=last_check,
+    return (DASHBOARD_HTML
+        .replace("{status_class}", status_class)
+        .replace("{status_text}", status_text)
+        .replace("{net_class}", net_class)
+        .replace("{net_text}", net_text)
+        .replace("{balance}", f"{balance:.2f}")
+        .replace("{equity_peak}", f"{equity_peak:.2f}")
+        .replace("{drawdown_pct}", f"{dd_pct:.1f}")
+        .replace("{dd_class}", dd_class)
+        .replace("{dd_color}", dd_color)
+        .replace("{drawdown_bar}", f"{dd_bar:.0f}")
+        .replace("{total_trades}", str(len(trades)))
+        .replace("{positions_table}", positions_table)
+        .replace("{indicators_table}", indicators_table)
+        .replace("{trades_table}", trades_table)
+        .replace("{config_items}", config_items)
+        .replace("{last_check}", str(last_check))
     )
 
 
@@ -1114,46 +1114,48 @@ def render_config_page(message=""):
     else:
         cb_status = '<span style="color:#3fb950;">INACTIVO</span>'
 
-    return CONFIG_HTML.format(
-        message=message,
-        form_fields=fields,
-        cb_status=cb_status,
+    return (CONFIG_HTML
+        .replace("{message}", message)
+        .replace("{form_fields}", fields)
+        .replace("{cb_status}", cb_status)
     )
 
 
 # ---------- LOGIN PAGE HTML ----------
 
-LOGIN_HTML = """<!DOCTYPE html>
+def _render_login(error="", next_url="/"):
+    """Generar HTML de login sin .format() para evitar conflictos con CSS."""
+    return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trading Bot - Login</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{
     background: #0d1117; color: #c9d1d9; font-family: 'Courier New', monospace;
     display: flex; justify-content: center; align-items: center; min-height: 100vh;
-  }
-  .login-box {
+  }}
+  .login-box {{
     background: #161b22; border: 1px solid #30363d; border-radius: 12px;
     padding: 40px; width: 360px; text-align: center;
-  }
-  h1 { color: #58a6ff; font-size: 20px; margin-bottom: 8px; }
-  p { color: #8b949e; font-size: 12px; margin-bottom: 24px; }
-  input[type="password"] {
+  }}
+  h1 {{ color: #58a6ff; font-size: 20px; margin-bottom: 8px; }}
+  p {{ color: #8b949e; font-size: 12px; margin-bottom: 24px; }}
+  input[type="password"] {{
     background: #0d1117; border: 1px solid #30363d; color: #f0f6fc;
     padding: 10px 14px; border-radius: 6px; font-family: 'Courier New', monospace;
     font-size: 14px; width: 100%; margin-bottom: 16px;
-  }
-  input:focus { border-color: #58a6ff; outline: none; }
-  button {
+  }}
+  input:focus {{ border-color: #58a6ff; outline: none; }}
+  button {{
     background: #238636; color: #fff; border: none; padding: 10px 24px;
     border-radius: 6px; cursor: pointer; font-family: 'Courier New', monospace;
     font-size: 14px; width: 100%;
-  }
-  button:hover { background: #2ea043; }
-  .error { color: #f85149; font-size: 12px; margin-bottom: 12px; }
+  }}
+  button:hover {{ background: #2ea043; }}
+  .error {{ color: #f85149; font-size: 12px; margin-bottom: 12px; }}
 </style>
 </head>
 <body>
@@ -1178,7 +1180,7 @@ def login_get():
     """Formulario de login."""
     next_url = request.args.get("next", "/")
     return Response(
-        LOGIN_HTML.format(error="", next_url=next_url),
+        _render_login(error="", next_url=next_url),
         content_type="text/html; charset=utf-8"
     )
 
@@ -1203,7 +1205,7 @@ def login_post():
         return resp
     else:
         return Response(
-            LOGIN_HTML.format(
+            _render_login(
                 error='<p class="error">Token incorrecto</p>',
                 next_url=next_url
             ),
