@@ -146,8 +146,8 @@ class Config:
     """Parámetros ajustables del bot. Se cargan de env vars y luego de config.json."""
     RISK_PERCENT: float = 1.5
     LEVERAGE: int = 3
-    RSI_OVERSOLD: float = 35.0
-    RSI_OVERBOUGHT: float = 65.0
+    RSI_OVERSOLD: float = 40.0
+    RSI_OVERBOUGHT: float = 60.0
     SL_ATR_MULT: float = 1.5
     TP_ATR_MULT: float = 3.75
     MAX_DRAWDOWN_PCT: float = 15.0
@@ -723,25 +723,41 @@ def check_signals():
                 f"ATR={atr:.2f} | Precio={price:.2f}"
             )
 
-            # --- SEÑAL LONG ---
+            # --- SEÑAL LONG (mean reversion) ---
             # RSI sobreventa + sesgo EMA alcista
             if rsi < cfg.RSI_OVERSOLD and indicators["ema_bullish_bias"]:
                 cross_msg = ""
                 if indicators["recent_bullish_cross"]:
                     cross_msg = " + CRUCE ALCISTA RECIENTE (señal fuerte)"
                 logger.info(
-                    f"SEÑAL LONG {symbol}: RSI={rsi:.1f} + sesgo alcista{cross_msg}"
+                    f"SEÑAL LONG {symbol} [RSI]: RSI={rsi:.1f} + sesgo alcista{cross_msg}"
                 )
                 execute_trade(symbol, "buy", price, atr)
 
-            # --- SEÑAL SHORT ---
+            # --- SEÑAL SHORT (mean reversion) ---
             # RSI sobrecompra + sesgo EMA bajista
             elif rsi > cfg.RSI_OVERBOUGHT and indicators["ema_bearish_bias"]:
                 cross_msg = ""
                 if indicators["recent_bearish_cross"]:
                     cross_msg = " + CRUCE BAJISTA RECIENTE (señal fuerte)"
                 logger.info(
-                    f"SEÑAL SHORT {symbol}: RSI={rsi:.1f} + sesgo bajista{cross_msg}"
+                    f"SEÑAL SHORT {symbol} [RSI]: RSI={rsi:.1f} + sesgo bajista{cross_msg}"
+                )
+                execute_trade(symbol, "sell", price, atr)
+
+            # --- SEÑAL LONG (trend) ---
+            # Cruce EMA alcista reciente — entrada por momentum
+            elif indicators["recent_bullish_cross"] and rsi < cfg.RSI_OVERBOUGHT:
+                logger.info(
+                    f"SEÑAL LONG {symbol} [EMA CROSS]: cruce alcista | RSI={rsi:.1f}"
+                )
+                execute_trade(symbol, "buy", price, atr)
+
+            # --- SEÑAL SHORT (trend) ---
+            # Cruce EMA bajista reciente — entrada por momentum
+            elif indicators["recent_bearish_cross"] and rsi > cfg.RSI_OVERSOLD:
+                logger.info(
+                    f"SEÑAL SHORT {symbol} [EMA CROSS]: cruce bajista | RSI={rsi:.1f}"
                 )
                 execute_trade(symbol, "sell", price, atr)
 
